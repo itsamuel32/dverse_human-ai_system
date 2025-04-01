@@ -13,40 +13,44 @@ def main():
     prompt = PromptTemplate(
         input_variables=["input", "tools", "tool_names", "agent_scratchpad"],
         template="""
+        
                 You are an intelligent assistant working in an Unreal Engine environment simulation.
-            
-                TOOLS:
+                You answer questions based or perform tasks based on the available tools.
+                - get_environment tools returns a list of game objects with their details in a form of JSON.
+                - move_object is in the development and does not work yet.
+                
+                TOOLS to use:
                 {tools}
             
                 RULES:
             
-                - based on the input, try to firstly call proper tool based on its description from {tool_names}
+                - call tools based on its description from {tool_names} applicable to the {input}
+                - always wait for the return from these tools if they have any, then proceed further
                 - do NOT fabricate any data, simply mention the error from the tools
-                - try accessing or executing the get_environment tool max 5 times in till you get a response 
+                - do NOT generate code for other tools, simply access the available ones based on the context of the input.
+                - if you start breaking any of the rules above, or can not answer the questions, simply apologize
+          
+                
+                EXAMPLE CASE:
+                
+                Input: Which objects are in the environment?
+                Thought: I should use get_environment tool to return the details of the objects from the environment.
+                Action: get_environment
+                Action Input: None                
             
-                STRICT FORMAT:  
-              
-                Input: Can I ask you anything about the environment?  
-                Thought: I need to get up-to-date data from the environment.    
-                Action: get_environment 
-                Action Input: ""
-                Observation: [{{...}}]
-                Final Answer: final response to the user, needs to be straightforward
-                  
-                Do not break this format.  
-                  
-                Begin!  
-                  
-                Input: {input}  
+                
+                Begin!
+                
+                {input}
                 {agent_scratchpad}  
             """)
 
     agent_chain = create_react_agent(llm=llm, tools=tools, prompt=prompt)
     agent = AgentExecutor(agent=agent_chain, tools=tools,
                           verbose=True, handle_parsing_errors=True,
-                          max_iterations=10, return_intermediate_steps=True)
+                          max_iterations=20)
 
-    response = agent.invoke({"input": "How many objects are my favourite?"})
+    response = agent.invoke({"input": "Execute get_environment and based on the data how many objects are my favourite?"})
     print(response)
 
 

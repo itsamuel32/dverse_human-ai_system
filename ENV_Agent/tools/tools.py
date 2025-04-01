@@ -4,7 +4,7 @@ import requests
 
 @tool
 def get_environment() -> str:
-    """Gets environment data from the local API in JSON. This API call returns the up-to-date data from the environment
+    """Gets environment ALL data from the local API in JSON. This API call returns the up-to-date data from the environment
 
     This is example of the data
      [
