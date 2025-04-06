@@ -233,3 +233,5 @@ var PersistentGraphSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
   }
 };
+
+/* nosourcemap */
