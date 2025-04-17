@@ -1,58 +1,76 @@
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain_ollama import OllamaLLM
-from tools.tools import get_environment, move_object
-from langchain.prompts import PromptTemplate
+# from autogen_ext.tools.mcp import SseServerParams, mcp_server_tools
+# from autogen_ext.models.ollama import OllamaChatCompletionClient
+# from autogen_agentchat.agents import AssistantAgent
+#
+#
+# async def main() -> None:
+#     # Setup server params for remote service
+#     server_params = SseServerParams(url="http://localhost:8000/sse")
+#
+#     # Get all available tools
+#     tools = await mcp_server_tools(server_params)
+#
+#     # Create an agent with all tools
+#     agent = AssistantAgent(name="tool_user", model_client=OllamaChatCompletionClient(model="mistral"), tools=tools)
+#
+#     response = await agent.run(task="A+1235?")
+#
+#     print(response)
+#
+# if __name__ == '__main__':
+#     asyncio.run(main())
+# fastapi_autogen_mcp.py
+import asyncio
+import uvicorn
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+# AutoGen‑extra adapters
+from autogen_ext.tools.mcp import SseServerParams, mcp_server_tools
+from autogen_ext.models.ollama import OllamaChatCompletionClient
+from autogen_agentchat.agents import AssistantAgent
 
 
-def main():
-    tools = [get_environment, move_object]
+# ─────────────────────────  lifespan  ────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
 
-    # local Mistral model
-    llm = OllamaLLM(model="mistral", temperature=0.1)
+    server_params = SseServerParams(url="http://localhost:8000/sse")
 
-    prompt = PromptTemplate(
-        input_variables=["input", "tools", "tool_names", "agent_scratchpad"],
-        template="""
-        
-                You are an intelligent assistant working in an Unreal Engine environment simulation.
-                You answer questions based or perform tasks based on the available tools.
-                - get_environment tools returns a list of game objects with their details in a form of JSON.
-                - move_object is in the development and does not work yet.
-                
-                TOOLS to use:
-                {tools}
-            
-                RULES:
-            
-                - call tools based on its description from {tool_names} applicable to the {input}
-                - always wait for the return from these tools if they have any, then proceed further
-                - do NOT fabricate any data, simply mention the error from the tools
-                - do NOT generate code for other tools, simply access the available ones based on the context of the input.
-                - if you start breaking any of the rules above, or can not answer the questions, simply apologize
-          
-                
-                EXAMPLE CASE:
-                
-                Input: Which objects are in the environment?
-                Thought: I should use get_environment tool to return the details of the objects from the environment.
-                Action: get_environment
-                Action Input: None                
-            
-                
-                Begin!
-                
-                {input}
-                {agent_scratchpad}  
-            """)
+    tools = await mcp_server_tools(server_params)
+    print(f"[startup] {len(tools)} tools loaded from MCP")
 
-    agent_chain = create_react_agent(llm=llm, tools=tools, prompt=prompt)
-    agent = AgentExecutor(agent=agent_chain, tools=tools,
-                          verbose=True, handle_parsing_errors=True,
-                          max_iterations=20)
+    model_client = OllamaChatCompletionClient(model="mistral")
 
-    response = agent.invoke({"input": "Execute get_environment and based on the data how many objects are my favourite?"})
-    print(response)
+    agent = AssistantAgent(
+        name="tool_user",
+        model_client=model_client,
+        tools=tools,
+        system_message=(
+            "You are an Unreal‑Engine code‑assistant.\n"
+            "• Always answer in THREE short bullet points.\n"
+            "• If you call a tool, first explain **why** in 1 sentence.\n"
+            "• If no tool is relevant, answer directly."
+        ),
+    )
+
+    app.state.agent = agent
+    yield
 
 
+app = FastAPI(title="AutoGen‑MCP Agent", lifespan=lifespan)
+
+
+# ─────────────────────────  endpoint  ────────────────────────────────
+@app.post("/ask")
+async def ask(prompt: str):
+
+    agent = app.state.agent
+    messages = await agent.run(task=prompt)
+    return messages
+
+
+# ─────────────────────────  run  ─────────────────────────────────────
 if __name__ == "__main__":
-    main()
+    uvicorn.run(app, port=8080)
