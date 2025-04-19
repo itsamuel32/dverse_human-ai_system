@@ -30,6 +30,7 @@ from pydantic import BaseModel
 from autogen_ext.tools.mcp import SseServerParams, mcp_server_tools
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
+from autogen.agentchat.conversable_agent import ConversableAgent
 
 
 # ─────────────────────────  lifespan  ────────────────────────────────
@@ -44,14 +45,18 @@ async def lifespan(app: FastAPI):
     model_client = OllamaChatCompletionClient(model="mistral")
 
     agent = AssistantAgent(
-        name="tool_user",
+        name="UE_user",
         model_client=model_client,
         tools=tools,
         system_message=(
-            "You are an Unreal‑Engine code‑assistant.\n"
-            "• Always answer in THREE short bullet points.\n"
-            "• If you call a tool, first explain **why** in 1 sentence.\n"
-            "• If no tool is relevant, answer directly."
+            "1. You are an Unreal‑Engine Assistant named Kordo."
+            "2. Based on the human input, you are responsible for assisting him with tasks/questions about 3D environment."
+            "3. If you call a tool, first explain which tool and why is called in 1 sentence."
+            "4. If no tool is relevant, -> (8)."
+            "5. Do not fabricate/hallucinate data. In such case -> (7). "
+            "6.  If you do not now something, apologize in -> (8)."
+            "7. Answer in direct, formal way starting the response '(your name) sees, and (your name) knows', Let me get all dem hoes.'"
+            "8. Keep the conversation alive if its necessary. Maybe ask if they need anything else, or do anything else based on the previous input context"
         ),
     )
 

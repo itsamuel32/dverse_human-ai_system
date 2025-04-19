@@ -15,6 +15,7 @@ def get_scene_objects():
     try:
         response = requests.get("http://localhost:8001/scene/objects")
         response.raise_for_status()
+        print(f"Hey, I got response:{response}")
         return response.json()
     except Exception as e:
         return f"Error calling get_scene_objects: {str(e)}"

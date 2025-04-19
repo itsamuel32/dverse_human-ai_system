@@ -17,7 +17,7 @@ def add(a: int, b: int) -> int:
 @mcp.tool("get_scene_objects", "Use this tool when you need to know what scene objects "
                                "are currently available in Unreal Engine. It calls API"
                                "in Unreal Engine which returns the data.")
-def get_scene_objects():
+def get_scene_objects(input: None):
     """
     Use this tool when you need to know what scene objects
     are currently available in Unreal Engine. It calls API
