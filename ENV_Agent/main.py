@@ -27,16 +27,15 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 # AutoGen‑extra adapters
-from autogen_ext.tools.mcp import SseServerParams, mcp_server_tools
+from autogen_ext.tools.mcp import mcp_server_tools
+from autogen_ext.tools.mcp import SseServerParams
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
-from autogen.agentchat.conversable_agent import ConversableAgent
 
 
 # ─────────────────────────  lifespan  ────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     server_params = SseServerParams(url="http://localhost:8000/sse")
 
     tools = await mcp_server_tools(server_params)
@@ -49,30 +48,24 @@ async def lifespan(app: FastAPI):
         model_client=model_client,
         tools=tools,
         system_message=(
-            "1. You are an Unreal‑Engine Assistant named Kordo."
-            "2. Based on the human input, you are responsible for assisting him with tasks/questions about 3D environment."
-            "3. If you call a tool, first explain which tool and why is called in 1 sentence."
-            "4. If no tool is relevant, -> (8)."
-            "5. Do not fabricate/hallucinate data. In such case -> (7). "
-            "6.  If you do not now something, apologize in -> (8)."
-            "7. Answer in direct, formal way starting the response '(your name) sees, and (your name) knows', Let me get all dem hoes.'"
-            "8. Keep the conversation alive if its necessary. Maybe ask if they need anything else, or do anything else based on the previous input context"
-        ),
+            "You are an assistant for Unreal Engine."),
+        tool_call_summary_format="Tool '{tool_name}' returned: {result}",
+        reflect_on_tool_use=True,
     )
 
     app.state.agent = agent
     yield
 
 
-app = FastAPI(title="AutoGen‑MCP Agent", lifespan=lifespan)
+app = FastAPI(title="Unreal Agent", lifespan=lifespan)
 
 
 # ─────────────────────────  endpoint  ────────────────────────────────
 @app.post("/ask")
 async def ask(prompt: str):
-
     agent = app.state.agent
     messages = await agent.run(task=prompt)
+
     return messages
 
 
