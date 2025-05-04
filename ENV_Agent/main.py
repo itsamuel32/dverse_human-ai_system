@@ -1,9 +1,8 @@
-import uvicorn
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+import uvicorn
 
-# AutoGen‑extra adapters
+# AutoGen AI adapters
 from autogen_ext.tools.mcp import mcp_server_tools
 from autogen_ext.tools.mcp import SseServerParams
 from autogen_ext.models.ollama import OllamaChatCompletionClient
@@ -19,7 +18,7 @@ async def lifespan(app: FastAPI):
     tools = await mcp_server_tools(server_params)
     print(f"[startup] {len(tools)} tools loaded from MCP")
 
-    model_client = OllamaChatCompletionClient(model="mistral",
+    model_client = OllamaChatCompletionClient(model="llama3.1:8b",
                                               model_info=ModelInfo(function_calling=True,
                                                                    json_output=False,
                                                                    vision=False,
@@ -34,12 +33,14 @@ async def lifespan(app: FastAPI):
         tools=tools,
         system_message=(
             "You are an assistant for Unreal Engine.\n"
-            "Do NOT generate code snippets.\n"
-            "Use appropriate the tools. Do not explain.\n"),
+            "When answering factual questions about the scene or object structure, first use tool resources.\n"
+            "Do NOT generate code snippets. Focus on clear answers. Do not explain unless necessary.\n"),
         reflect_on_tool_use=True
     )
 
+
     app.state.agent = agent
+
     yield
 
 
@@ -57,4 +58,4 @@ async def ask(prompt: str):
 
 # ─────────────────────────  run  ─────────────────────────────────────
 if __name__ == "__main__":
-    uvicorn.run(app, port=8080)
+    uvicorn.run(app, port=8008)

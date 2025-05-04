@@ -10,7 +10,7 @@ class VectorDB:
         self.client = PersistentClient(path=persist_dir)
         self.collection = self.client.get_or_create_collection(name="scene_objects")
 
-    def update_from_unreal(self, endpoint: str = "http://localhost:8001/scene/objects") -> int:
+    def update_from_unreal(self, endpoint: str = "http://localhost:8080/scene/objects") -> int:
         try:
             response = requests.get(endpoint)
             response.raise_for_status()
