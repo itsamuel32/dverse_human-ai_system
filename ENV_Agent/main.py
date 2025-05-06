@@ -32,9 +32,13 @@ async def lifespan(app: FastAPI):
         model_client=model_client,
         tools=tools,
         system_message=(
-            "You are an assistant for Unreal Engine.\n"
-            "When answering factual questions about the scene or object structure, first use tool resources.\n"
-            "Do NOT generate code snippets. Focus on clear answers. Do not explain unless necessary.\n"),
+            """
+                You are an assistant for Unreal Engine.
+                When answering factual questions about the scene or object structure, first use tool resources.
+                Do NOT generate code snippets. Focus on clear answers. Do not explain unless necessary.
+                Do NOT explain how you would do tasks, make use of tools if applicable.
+            """
+        ),
         reflect_on_tool_use=True
     )
 
