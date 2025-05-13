@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import uvicorn
-
+import time
 # AutoGen AI adapters
 from autogen_ext.tools.mcp import mcp_server_tools
 from autogen_ext.tools.mcp import SseServerParams
@@ -42,9 +42,7 @@ async def lifespan(app: FastAPI):
         reflect_on_tool_use=True
     )
 
-
     app.state.agent = agent
-
     yield
 
 
@@ -54,9 +52,14 @@ app = FastAPI(title="Unreal Agent", lifespan=lifespan)
 # ─────────────────────────  endpoint  ────────────────────────────────
 @app.post("/ask")
 async def ask(prompt: str):
+    start_time = time.perf_counter()
+
     agent = app.state.agent
     messages = await agent.run(task=prompt)
 
+    end_time = time.perf_counter()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time:.4f} seconds")
     return messages
 
 

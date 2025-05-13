@@ -13,8 +13,11 @@ vdb = VectorDB()
 
 # ────────────────────────── Resources ───────────────────────── #
 
-@mcp.resource("resource://scene_data")
+@mcp.resource("list://scene_description")
 def scene_description() -> str:
+    """Returns description of the scene and specification"""
+
+
     return (
         """The environment you are assisting with is an Art gallery -'Fontys Gallery' with famous paintings and statues.
         Build in 2025, this is a first iteration of such 3D environment for Fontys, where LLM can interact together
