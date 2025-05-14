@@ -13,31 +13,19 @@ vdb = VectorDB()
 
 # ────────────────────────── Resources ───────────────────────── #
 
-@mcp.resource("list://scene_description")
+@mcp.tool("get_scene_bounds")
 def scene_description() -> str:
-    """Returns description of the scene and specification"""
+    """Returns  Walls and Floors of the gallery with their spacial data"""
+
+    try:
+        response = requests.get("http://localhost:8080/scene/bounds")
+        response.raise_for_status()
+        return f"Response from Server: {response.text}"
+
+    except  requests.RequestException as e:
+        return f"[ERROR] Failed to move object: {e}"
 
 
-    return (
-        """The environment you are assisting with is an Art gallery -'Fontys Gallery' with famous paintings and statues.
-        Build in 2025, this is a first iteration of such 3D environment for Fontys, where LLM can interact together
-        with human to achieve human-ai collaboration.
-
-        In the scene it applies that: 
-        X axis is forward-backward
-        Y axis is left-right 
-        Z axis is up-down
-        
-        Roll = rotation on X axis
-        Pitch = rotation on Y axis
-        Yaw = rotation on Z axis
-        
-        Objects in the scene:
-        [id: 1, Mona Lisa]
-        [id: 2, Woman in the Sun]
-        [id: 3, The Starry Night]
-        """
-    )
 
 
 # ────────────────────────── TOOLS ───────────────────────────── #
