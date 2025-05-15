@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import uvicorn
@@ -11,9 +13,11 @@ from autogen_core.models import ModelInfo, ModelFamily
 
 
 # ─────────────────────────  lifespan  ────────────────────────────────
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    server_params = SseServerParams(url="http://localhost:8000/sse")
+    server_params = SseServerParams(url=os.getenv("MCP_SERVER_URL", "http://localhost:8000/sse"))
 
     tools = await mcp_server_tools(server_params)
     print(f"[startup] {len(tools)} tools loaded from MCP")
