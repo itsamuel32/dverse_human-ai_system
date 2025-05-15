@@ -24,11 +24,14 @@ def recognize_speech_blocking():
         except sr.WaitTimeoutError:
             return "Listening timed out"
 
+# -------------------- GENERAL PAGE SETUP --------------- #
 
 def main(page: ft.Page):
     page.title = "Voice Recognition Module"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+# -------------------- INPUT FIELD --------------- #
 
     input_field = ft.TextField(
         width=500,
@@ -37,6 +40,8 @@ def main(page: ft.Page):
         multiline=True,
         min_lines=2
     )
+
+# -------------------- MIC BUTTON --------------- #
 
     async def recognize_speech_async(e):
         # Change button color to white while listening
@@ -52,7 +57,6 @@ def main(page: ft.Page):
         mic_button.style.bgcolor = ft.Colors.BLUE_400
         page.update()
 
-    # Define mic_button at main scope so it's accessible inside async
     mic_button = ft.ElevatedButton(
         content=ft.Icon(ft.Icons.MIC, size=50),
         style=ft.ButtonStyle(
@@ -62,6 +66,8 @@ def main(page: ft.Page):
         ),
         on_click=recognize_speech_async
     )
+
+# -------------------- SEND MESSAGE BUTTON --------------- #
 
     def on_send_click(e):
         print(f"Sending text: {input_field.value}")
@@ -74,6 +80,8 @@ def main(page: ft.Page):
         on_click=on_send_click
     )
 
+# -------------------- CLEAR BUTTON --------------- #
+
     def on_clear_click(e):
         input_field.value = ""
         page.update()
@@ -83,6 +91,7 @@ def main(page: ft.Page):
         on_click=on_clear_click
     )
 
+# -------------------- DISPLAY ALL ELEMENTS --------------- #
     page.add(
         mic_button,
         ft.Row(
