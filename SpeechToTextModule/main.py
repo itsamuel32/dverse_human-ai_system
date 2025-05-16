@@ -24,6 +24,7 @@ def recognize_speech_blocking():
         except sr.WaitTimeoutError:
             return "Listening timed out"
 
+
 # -------------------- GENERAL PAGE SETUP --------------- #
 
 def main(page: ft.Page):
@@ -31,17 +32,27 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-# -------------------- INPUT FIELD --------------- #
+    # -------------------- INPUT FIELD --------------- #
 
     input_field = ft.TextField(
-        width=500,
+        # width=800,
         hint_text="Recognized text will appear here...",
         autofocus=False,
         multiline=True,
         min_lines=2
     )
 
-# -------------------- MIC BUTTON --------------- #
+    # ---------------- LLM RESPONSE AREA ----------------
+    llm_response_field = ft.TextField(
+        # width=400,
+        # height=400,
+        hint_text="LLM Response will appear here...",
+        read_only=True,
+        multiline=True,
+        min_lines=30,
+    )
+
+    # -------------------- MIC BUTTON --------------- #
 
     async def recognize_speech_async(e):
         # Change button color to white while listening
@@ -58,16 +69,16 @@ def main(page: ft.Page):
         page.update()
 
     mic_button = ft.ElevatedButton(
-        content=ft.Icon(ft.Icons.MIC, size=50),
+        content=ft.Icon(ft.Icons.MIC, size=100),
         style=ft.ButtonStyle(
-            shape=ft.RoundedRectangleBorder(radius=400),
-            padding=40,
+            shape=ft.RoundedRectangleBorder(radius=300),
+            padding=50,
             bgcolor=ft.Colors.BLUE_400
         ),
         on_click=recognize_speech_async
     )
 
-# -------------------- SEND MESSAGE BUTTON --------------- #
+    # -------------------- SEND MESSAGE BUTTON --------------- #
 
     def on_send_click(e):
         print(f"Sending text: {input_field.value}")
@@ -77,10 +88,11 @@ def main(page: ft.Page):
 
     send_button = ft.IconButton(
         icon=ft.Icons.SEND,
-        on_click=on_send_click
+        on_click=on_send_click,
+        icon_size=50
     )
 
-# -------------------- CLEAR BUTTON --------------- #
+    # -------------------- CLEAR BUTTON --------------- #
 
     def on_clear_click(e):
         input_field.value = ""
@@ -88,17 +100,62 @@ def main(page: ft.Page):
 
     clear_button = ft.IconButton(
         icon=ft.Icons.CLEAR,
-        on_click=on_clear_click
+        on_click=on_clear_click,
+        icon_size=50
     )
 
-# -------------------- DISPLAY ALL ELEMENTS --------------- #
+    # ---------------- LEFT PANEL (centered) ----------------
+    left_panel = ft.Container(
+        content=ft.Column(
+            [
+                mic_button,
+                # ft.Row([input_field, send_button, clear_button], alignment=ft.MainAxisAlignment.CENTER)
+                ft.Column(
+                    [
+                        input_field,
+                        ft.Row([send_button, clear_button], alignment=ft.MainAxisAlignment.CENTER)
+                    ],
+                    spacing=10,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
+            ],
+            spacing=20,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=True
+        ),
+        alignment=ft.alignment.center,
+        expand=1
+    )
+
+    # ---------------- RIGHT PANEL (stretch fully) ----------------
+    llm_response_field.expand = True
+
+    right_panel = ft.Column(
+        [
+            ft.Text("LLM Response", size=20,
+                    weight=ft.FontWeight.BOLD,
+                    text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_400),
+            llm_response_field
+        ],
+        spacing=10,
+        alignment=ft.MainAxisAlignment.START,
+        horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
+        expand=True
+    )
+
+    # ---------------- MAIN LAYOUT ----------------
     page.add(
-        mic_button,
         ft.Row(
-            [input_field, send_button,clear_button],
-            alignment=ft.MainAxisAlignment.CENTER
+            [
+                left_panel,
+                right_panel
+            ],
+            expand=True,
+            vertical_alignment=ft.CrossAxisAlignment.STRETCH
         )
     )
 
 
-ft.app(target=main)
+ft.app(target=main, view=ft.WEB_BROWSER, port=3000)
