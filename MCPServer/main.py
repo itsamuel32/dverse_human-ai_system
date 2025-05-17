@@ -26,21 +26,24 @@ def scene_description() -> str:
         return f"[ERROR] Failed to move object: {e}"
 
 
-
-
 # ────────────────────────── TOOLS ───────────────────────────── #
 
 @mcp.tool("query_scene_objects")
 def query_scene_objects(query: str, nr_of_returned_objects: int):
-    """Search for scene objects using a semantic query. Returns a list of objects that may be relevant to the meaning of the query.
-        Each object includes its ID, Name, Description, and Transform. Results may include tangential matches.
-        If multiple results are returned, analyze which object's are closest to match for the prompt, some results may not match.
-        If no results match closely, you should apologize and say nothing was found.
+    """
+    Good for querying objects based on description or context.
+    Search for scene objects using a semantic query. Returns a list of objects that may be relevant to the meaning of the query.
+    Each object includes its ID, Name, Description, and Transform. Results may include tangential matches.
+    If multiple results are returned, analyze which object's are closest to match for the prompt, some results may not match.
+    If no results match closely, you should apologize and say nothing was found.
     """
 
     return vdb.search(query, nr_of_returned_objects)
 
 
+# This could be None in the future and if the value is none, then It will not send it in the batch.
+# Currently, if it changes one value but wants to keep the same, it should input the current transform values
+# 0 also counts as location in case the object is location on X= 41, Y = 25, Z = 90 then 0 would position it to 0
 @mcp.tool("move_scene_object")
 def move_scene_object(id: str, locationX: float, locationY: float, locationZ: float) -> str:
     """
@@ -63,6 +66,9 @@ def move_scene_object(id: str, locationX: float, locationY: float, locationZ: fl
         return f"[ERROR] Failed to move object: {e}"
 
 
+# This could be None in the future and if the value is none, then It will not send it in the batch.
+# Currently, if it changes one value but wants to keep the same, it should input the current transform values
+# 0 also counts as rotation in case the object is rotated on X= 41, Y = 25, Z = 90 then 0 would rotate it :(
 @mcp.tool("rotate_scene_object")
 def rotate_scene_object(id: str, rotation_roll: float, rotation_pitch: float, rotation_yaw: float) -> str:
     """
@@ -78,6 +84,40 @@ def rotate_scene_object(id: str, rotation_roll: float, rotation_pitch: float, ro
         }
 
         response = requests.patch("http://localhost:8080/scene/objects/rotate", json=data)
+        response.raise_for_status()
+        return f"Response from Server: {response.text}"
+
+    except requests.RequestException as e:
+        return f"[ERROR] Failed to rotate object: {e}"
+
+
+@mcp.tool("clear_trash_bins")
+def clear_trash_bins():
+    """
+    This function clears the all trash bins in unreal engine scene.
+
+    """
+    try:
+
+        response = requests.post("http://localhost:8080/scene/clear/trash")
+        response.raise_for_status()
+        return f"Response from Server: {response.text}"
+
+    except requests.RequestException as e:
+        return f"[ERROR] Failed to rotate object: {e}"
+
+
+@mcp.tool("switch_lights")
+def switch_lights(isOn: bool):
+    """
+    This function switches all the lights in the scene. if ture - lights on, if false - lights off.
+
+    """
+    try:
+
+        body = {"isOn": isOn}
+
+        response = requests.post("http://localhost:8080/scene/lights", json=body)
         response.raise_for_status()
         return f"Response from Server: {response.text}"
 

@@ -1,4 +1,7 @@
+import json
+
 import flet as ft
+import httpx
 import speech_recognition as sr
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -80,11 +83,33 @@ def main(page: ft.Page):
 
     # -------------------- SEND MESSAGE BUTTON --------------- #
 
-    def on_send_click(e):
-        print(f"Sending text: {input_field.value}")
-        page.snack_bar = ft.SnackBar(ft.Text(f"Sent: {input_field.value}"))
-        page.snack_bar.open = True
-        page.update()
+    async def on_send_click(e):
+        user_input = input_field.value
+        print(f"Sending text: {user_input}")
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post("http://localhost:8008/ask", params={"prompt": user_input})
+
+            print(f"Response Status: {response.status_code}")
+
+            # Check if response is JSON
+            content_type = response.headers.get("content-type", "")
+            print(f"Content-Type: {content_type}")
+
+            if "application/json" in content_type:
+                data = response.json()
+                llm_response_field.value = json.dumps(data, indent=2, ensure_ascii=False)
+            else:
+                # Fallback: plain text (e.g., str(TaskResult(...)))
+                llm_response_field.value = response.text
+
+            page.update()
+
+        except Exception as ex:
+            print(f"Request failed: {ex}")
+            llm_response_field.value = f"Request failed: {ex}"
+            page.update()
 
     send_button = ft.IconButton(
         icon=ft.Icons.SEND,

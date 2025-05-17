@@ -2,5 +2,5 @@ speechrecognition~=3.14.3
 pyaudio~=0.2.14
 flet~=0.28.2
 flet-web~= 0.28.2
-
 beautifulsoup4~=4.13.4
+httpx~=0.28.1

@@ -1,6 +1,7 @@
 import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
 import time
@@ -10,6 +11,7 @@ from autogen_ext.tools.mcp import SseServerParams
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
 from autogen_core.models import ModelInfo, ModelFamily
+
 
 
 # ─────────────────────────  lifespan  ────────────────────────────────
@@ -41,6 +43,7 @@ async def lifespan(app: FastAPI):
                 When answering factual questions about the scene or object structure, first use tool resources.
                 Do NOT generate code snippets. Focus on clear answers. Do not explain unless necessary.
                 Do NOT explain how you would do tasks, make use of tools if applicable.
+                Do NOT hallucinate data.
             """
         ),
         reflect_on_tool_use=True
@@ -51,6 +54,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Unreal Agent", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For dev/testing, wildcard is fine. In prod restrict.
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # ─────────────────────────  endpoint  ────────────────────────────────
@@ -64,6 +74,7 @@ async def ask(prompt: str):
     end_time = time.perf_counter()
     execution_time = end_time - start_time
     print(f"Execution time: {execution_time:.4f} seconds")
+    print(messages)
     return messages
 
 

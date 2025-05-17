@@ -14,10 +14,10 @@ services:
       - MCP_SERVER_URL=http://mcp-server:8000/sse
     depends_on:
       - mcp-server
-  speech-to-text-module:
-    build: 
-      context: ./SpeechToTextModule
-    ports:
-      - "3000:3000"
+  # speech-to-text-module:
+  #   build: 
+  #     context: ./SpeechToTextModule
+  #   ports:
+  #     - "3000:3000"
 
     

@@ -123,6 +123,7 @@ class VectorDB:
                 }
                 for metadata in results.get("metadatas", [[]])[0]
             ]
+
         except Exception as e:
             print(f"[SceneObjectVectorDB] Search failed: {e}")
             return []
