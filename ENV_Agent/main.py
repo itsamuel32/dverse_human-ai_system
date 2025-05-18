@@ -75,7 +75,7 @@ async def ask(prompt: str):
     execution_time = end_time - start_time
     print(f"Execution time: {execution_time:.4f} seconds")
     print(messages)
-    return messages
+    return messages, execution_time
 
 
 # ─────────────────────────  run  ─────────────────────────────────────
