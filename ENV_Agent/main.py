@@ -1,5 +1,6 @@
 import os
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -9,6 +10,7 @@ import time
 from autogen_ext.tools.mcp import mcp_server_tools
 from autogen_ext.tools.mcp import SseServerParams
 from autogen_ext.models.ollama import OllamaChatCompletionClient
+from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
 from autogen_core.models import ModelInfo, ModelFamily
 
@@ -17,6 +19,8 @@ from autogen_core.models import ModelInfo, ModelFamily
 # ─────────────────────────  lifespan  ────────────────────────────────
 
 
+load_dotenv()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     server_params = SseServerParams(url=os.getenv("MCP_SERVER_URL", "http://localhost:8000/sse"))
@@ -24,14 +28,21 @@ async def lifespan(app: FastAPI):
     tools = await mcp_server_tools(server_params)
     print(f"[startup] {len(tools)} tools loaded from MCP")
 
-    model_client = OllamaChatCompletionClient(model="llama3.1:8b",
-                                              model_info=ModelInfo(function_calling=True,
-                                                                   json_output=False,
-                                                                   vision=False,
-                                                                   structured_output=True,
-                                                                   family=ModelFamily.UNKNOWN
-                                                                   )
-                                              )
+    # model_client = OllamaChatCompletionClient(model="llama3.1:8b",
+    #                                           model_info=ModelInfo(function_calling=True,
+    #                                                                json_output=False,
+    #                                                                vision=False,
+    #                                                                structured_output=True,
+    #                                                                family=ModelFamily.UNKNOWN
+    #                                                                )
+    #                                           )
+
+    model_client = OpenAIChatCompletionClient(
+        model="gpt-4.1",
+        api_key=os.getenv('OPENAI_API_KEY'),
+        model_info=ModelInfo(function_calling=True, json_output=False, vision=False, structured_output=True,
+                             family=ModelFamily.GPT_4)
+    )
 
     agent = AssistantAgent(
         name="ENV_Agent",
